@@ -16,8 +16,9 @@ func commandMapb(cfg *config) error {
 		return nil
 	}
 
-	firstURL := cfg.Previous[0]
+	copy(cfg.Next, cfg.Previous)
 
+	firstURL := cfg.Next[0]
 	urlParsed, err := url.Parse(firstURL)
 	if err != nil {
 		return err
@@ -29,16 +30,17 @@ func commandMapb(cfg *config) error {
 		return err
 	}
 
-	cfg.Next = cfg.Previous
-
-	for i := 0; i < 20; i++ {
-		fullURL := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%d/", id-20+i)
-		cfg.Next[i] = fullURL
+	if id <= 21 {
+		cfg.Previous = nil
+	} else {
+		for i := 0; i < 20; i++ {
+			fullURL := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%d/", id-21+i)
+			cfg.Previous[i] = fullURL
+		}
 	}
 
-	for i := 0; i < 20; i++ {
-		fullURL := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%d/", cfg.Next)
-		res, err := http.Get(fullURL)
+	for _, url := range cfg.Next {
+		res, err := http.Get(url)
 		if err != nil {
 			return err
 		}

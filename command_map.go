@@ -12,15 +12,19 @@ import (
 
 func commandMap(cfg *config) error {
 	var id int
+	var urls []string
 	if cfg.Next == nil {
 		id = 0
 		for i := 0; i < 20; i++ {
 			fullURL := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%d/", id+1+i)
 			cfg.Next = append(cfg.Next, fullURL)
 		}
-		cfg.Previous = cfg.Next
+		urls = cfg.Next
 	} else {
-		cfg.Previous = cfg.Next
+		if cfg.Previous == nil {
+			cfg.Previous = make([]string, len(cfg.Next))
+		}
+		copy(cfg.Previous, cfg.Next)
 		lastURL := cfg.Previous[len(cfg.Previous)-1]
 		urlParsed, err := url.Parse(lastURL)
 		if err != nil {
@@ -36,9 +40,10 @@ func commandMap(cfg *config) error {
 			fullURL := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%d/", id+1+i)
 			cfg.Next[i] = fullURL
 		}
+		urls = cfg.Next
 	}
 
-	for _, url := range cfg.Previous {
+	for _, url := range urls {
 		res, err := http.Get(url)
 		if err != nil {
 			return err
