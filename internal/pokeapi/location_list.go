@@ -2,11 +2,14 @@ package pokeapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 func (c *Client) ListLocations(pageURL *string) (ResShallowLocations, error) {
+	defer timeTrack(time.Now(), "ListLocations")
 	url := baseURL + "/location-area"
 	if pageURL != nil {
 		url = *pageURL
@@ -43,4 +46,9 @@ func (c *Client) ListLocations(pageURL *string) (ResShallowLocations, error) {
 	}
 
 	return locationRes, nil
+}
+
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	fmt.Printf("%s took %s\n", name, elapsed)
 }
