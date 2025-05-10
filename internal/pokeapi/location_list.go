@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (c *Client) ListLocations(pageURL *string) (ResLocations, error) {
+func (c *Client) ListLocations(pageURL *string) (Locations, error) {
 	defer timeTrack(time.Now(), "ListLocations")
 	url := baseURL + "/location-area"
 	if pageURL != nil {
@@ -16,36 +16,37 @@ func (c *Client) ListLocations(pageURL *string) (ResLocations, error) {
 	}
 
 	if val, ok := c.cache.Get(url); ok {
-		locationRes := ResLocations{}
-		err := json.Unmarshal(val, &locationRes)
+		locationsRes := Locations{}
+		err := json.Unmarshal(val, &locationsRes)
 		if err != nil {
-			return ResLocations{}, err
+			return Locations{}, err
 		}
-		return locationRes, nil
+		return locationsRes, nil
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return ResLocations{}, err
+		return Locations{}, err
 	}
 
 	res, err := c.httpClient.Do(req)
 	if err != nil {
-		return ResLocations{}, err
+		return Locations{}, err
 	}
 	defer res.Body.Close()
 
 	dat, err := io.ReadAll(res.Body)
 	if err != nil {
-		return ResLocations{}, err
+		return Locations{}, err
 	}
 
-	locationRes := ResLocations{}
-	if err := json.Unmarshal(dat, &locationRes); err != nil {
-		return ResLocations{}, err
-	}
+	c.cache.Add(url, dat)
 
-	return locationRes, nil
+	locationsRes := Locations{}
+	if err := json.Unmarshal(dat, &locationsRes); err != nil {
+		return Locations{}, err
+	}
+	return locationsRes, nil
 }
 
 func timeTrack(start time.Time, name string) {
